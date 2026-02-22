@@ -5,7 +5,6 @@ This tool can be used to monitor an interface, collect network packets, generate
 ## Requirements
 
 - Docker 
-- Docker compose
 
 ## Configuration
 
@@ -22,7 +21,7 @@ Important parameters are:
 The network scanner can be deployed by building the `Dockerfile` in the root directory.
 
 ```
-docker build . -t network-scanner:latest & docker run -it --rm network-scanner:latest --cap-add=NET_ADMIN --cap-add=NET_RAW 
+docker build . -t sigmoscan:latest && docker run -it --rm --network=host --cap-add=NET_ADMIN --cap-add=NET_RAW sigmoscan:latest
 ```
 
 
@@ -31,6 +30,6 @@ docker build . -t network-scanner:latest & docker run -it --rm network-scanner:l
 The network scanner can be tested by running
 
 ```
-./test.sh
+make test
 ```
 

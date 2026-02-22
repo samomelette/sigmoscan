@@ -10,6 +10,8 @@ program. If not, see <https://creativecommons.org/licenses/by-nc-sa/4.0/>.
 """
 
 import os
+from sys import stderr
+import time
 import logging
 import subprocess
 
@@ -39,16 +41,23 @@ def capture_live_interface(
         stderr=subprocess.PIPE,
     )
 
-    try:
-        _, err = tcpdump_process.communicate(timeout=1)
+    time.sleep(1)
+    if tcpdump_process.poll() is not None:
+        # process already exited, now it's safe to read stderr
+        if tcpdump_process.stderr is None:
+            logging.error(
+                color(f"Fatal: Unknown tcpdump error, could not read stderr", "red")
+            )
+            return tcpdump_process
+        err = tcpdump_process.stderr.read()
         if "Operation not permitted" in err.decode():
+
+
             logging.error(
                 color(
                     f"Fatal: You don't have the necessary permissions to run tcpdump. {err.decode()}", 
                     "red"
                 )
             )
-    except subprocess.TimeoutExpired:
-        logging.info(color("Tcpdump subprocess started successfully", "green"))
 
     return tcpdump_process

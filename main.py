@@ -97,6 +97,14 @@ def main():
         while True:
             pcap_file = temp_pcap_handler.get_next_pcap_file()
             if pcap_file is None:
+                # check that tcpdump process is still alive
+                if tcpdump_process.poll() is not None:
+                    if tcpdump_process.stderr is not None:
+                        err = tcpdump_process.stderr.read().decode()
+                        err = err.rstrip('\n')
+                        logging.error(color(f"{err}", "red"))
+                        raise KeyboardInterrupt
+
                 continue
 
             df = get_df_from_pcap(pcap_file)
