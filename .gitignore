@@ -1,0 +1,7 @@
+**/__pycache__/
+
+uv.lock
+
+*.md
+!README.md
+!**/README.md

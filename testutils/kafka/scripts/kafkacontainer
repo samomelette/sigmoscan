@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+CONTAINER_NAME="kafkaserver"
+IMAGE="apache/kafka:4.0.0"
+
+PARTITIONS=1
+REPLICATION=1
+
+wait_for_kafka() {
+  echo "Waiting for Kafka to be ready..."
+  # keep trying until the broker responds
+  until docker exec "$CONTAINER_NAME" \
+    /opt/kafka/bin/kafka-topics.sh --bootstrap-server $IP_ADDRESS:9092 --list >/dev/null 2>&1
+  do
+     sleep 1
+  done
+  echo "Kafka is ready."
+}
+
+# parse out "--address=<ip_address>"
+for arg in "$@"; do
+  case "$arg" in
+    --address=*)
+      IP_ADDRESS="${arg#*=}"
+      shift
+      ;;
+  esac
+done
+
+case "$1" in
+  start)
+    # already running?
+    if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+      echo "Container ${CONTAINER_NAME} is already running."
+      wait_for_kafka
+      exit 0
+    fi
+
+    # exists but stopped?
+    if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+      echo "Starting existing container ${CONTAINER_NAME}..."
+      docker start "$CONTAINER_NAME"
+    else
+      echo "Creating and starting Kafka container..."
+      docker run -d --cap-add NET_ADMIN --name="$CONTAINER_NAME" -p 9092:9092 "$IMAGE"
+    fi
+
+    wait_for_kafka
+    ;;
+
+  stop)
+    echo "Stopping container..."
+    docker stop "$CONTAINER_NAME" >/dev/null 2>&1
+    ;;
+  
+  delete)
+    echo "Deleting container..."
+    docker stop "$CONTAINER_NAME" >/dev/null 2>&1 && docker rm "$CONTAINER_NAME" >/dev/null 2>&1
+    ;;
+
+  create-topic)
+    TOPIC="$2"
+    if [ -z "$TOPIC" ]; then
+      echo "Usage: kafkacontainer create-topic <topic>"
+      exit 1
+    fi
+    docker exec "$CONTAINER_NAME" \
+      /opt/kafka/bin/kafka-topics.sh --create \
+      --bootstrap-server $IP_ADDRESS:9092 \
+      --topic "$TOPIC" \
+      --partitions $PARTITIONS --replication-factor $REPLICATION
+    ;;
+
+  list-topics)
+    echo "Listing all topics..."
+    docker exec "$CONTAINER_NAME" \
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server $IP_ADDRESS:9092 --list
+    ;;
+
+  reset-topics)
+    echo "Deleting all topics..."
+    TOPICS=$(docker exec "$CONTAINER_NAME" \
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server $IP_ADDRESS:9092 --list)
+    for t in $TOPICS; do
+      if [ "$t" == "__consumer_offsets" ]; then
+        continue
+      fi
+      echo "Deleting $t"
+      docker exec "$CONTAINER_NAME" \
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server $IP_ADDRESS:9092 \
+        --delete --topic "$t"
+    done
+    ;;
+  exec-consumer)
+    TOPIC="$2"
+    if [ -z "$TOPIC" ]; then
+      echo "Usage: kafkacontainer exec-consumer <topic>"
+      exit 1
+    fi
+    echo "Running consumer for topic $TOPIC..."
+    docker exec -it "$CONTAINER_NAME" /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server $IP_ADDRESS:9092 --topic "$TOPIC" --from-beginning
+    ;;
+
+  exec-producer)
+    TOPIC="$2"
+    if [ -z "$TOPIC" ]; then
+      echo "Usage: kafkacontainer exec-producer <topic>"
+      exit 1
+    fi
+    echo "Running producer for topic $TOPIC..."
+    docker exec -it "$CONTAINER_NAME" /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server $IP_ADDRESS:9092 --topic "$TOPIC"
+    ;;
+  *)
+    echo "Usage: kafkacontainer <cmd>"
+    echo "Commands:"
+    echo "       start [--address=<ip_address>]"
+    echo "       stop"
+    echo "       delete"
+    echo "       create-topic <topic>"
+    echo "       list-topics"
+    echo "       reset-topics"
+    echo "       exec-consumer <topic>"
+    echo "       exec-producer <topic>"
+    echo ""
+    exit 1
+    ;;
+esac

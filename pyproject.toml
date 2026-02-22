@@ -1,0 +1,14 @@
+[project]
+name = "network-scanner"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "kafka-python>=2.3.0",
+    "nfstream>=6.5.4",
+    "pandas-stubs>=2.3.3.260113",
+]
+
+[tool.pyright]
+typeCheckingMode = "standard"
