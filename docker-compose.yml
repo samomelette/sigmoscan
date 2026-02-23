@@ -1,0 +1,11 @@
+services:
+  sigmoscan:
+    build: .
+    image: sigmoscan:latest
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    cpus: 1.0
+    stdin_open: true
+    tty: true
