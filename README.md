@@ -5,10 +5,15 @@ This tool can be used to monitor an interface, collect network packets, and extr
 ## Requirements
 
 - Docker 
+- (Optional) Docker Compose
 
 ## Configuration
 
-SigmoScan can be configured using the `config.ini` file.
+SigmoScan can be configured using the `config.ini` file. Use `example_config.ini` as a template.
+```sh
+cp example_config.ini config.ini
+```
+
 Important parameters are:
 
 - `[SCANNER]`
