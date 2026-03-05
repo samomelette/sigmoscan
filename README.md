@@ -21,6 +21,8 @@ Important parameters are:
 
 ## Deployment
 
+### With Docker
+
 SigmoScan can be deployed by building the `Dockerfile` in the root directory.
 
 ```sh
@@ -28,6 +30,16 @@ docker build . -t sigmoscan:latest && docker run -it --rm --network=host --cap-a
 ```
 
 DISCLAIMER: Since SigmoScan heavily relies on Python multiprocessing, its default resource consumption can be large (2-3 full CPU cores). One can set, e.g., `--cpus=1.0` for `docker run` to limit the number of cores used by SigmoScan to 1.
+
+
+### With Docker Compose
+
+```sh
+docker compose up --build
+```
+
+NOTE: The `--build` option can be omitted whenever the `config.ini` file is not changed.
+
 
 ## Dev
 
