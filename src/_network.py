@@ -10,6 +10,9 @@ program. If not, see <https://creativecommons.org/licenses/by-nc-sa/4.0/>.
 """
 
 import socket
+import logging
+
+from src.color import color
 
 def check_existing_network_interface(interface: str) -> bool:
     """
@@ -28,6 +31,7 @@ def check_existing_network_interface(interface: str) -> bool:
     else:
         available_interfaces_str = ",".join(available_interfaces)
         error_msg = f"Interface {interface} not in the list of available interfaces: {available_interfaces_str}."
-        raise ValueError(error_msg)
+        logging.error(color(error_msg, 'r'))
+        return False
 
 

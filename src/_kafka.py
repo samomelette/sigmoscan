@@ -123,7 +123,7 @@ class ScannerKafkaProducer(Process):
                     sasl_plain_password=self.sasl_plain_password,
                 )
 
-                future = producer.send('sigmoscan-topic', report_data)
+                future = producer.send(self.topic, report_data)
                 result = future.get(timeout=self.timeout_sec)
 
                 self.logger.info(

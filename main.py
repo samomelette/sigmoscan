@@ -74,6 +74,7 @@ def main():
 
     if config["interface"] is not None and not check_existing_network_interface(config["interface"]):
         logging.error(color(f"Fatal: Interface {config['interface']} does not exist.", "red"))
+        exit(-1)
 
 
      # Start processes

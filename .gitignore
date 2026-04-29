@@ -7,3 +7,4 @@ uv.lock
 !**/README.md
 
 config.ini
+config_local.ini
